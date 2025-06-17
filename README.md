@@ -192,6 +192,8 @@ Dieses Skript identifiziert die Spulen über die RFID-UID, die von Bambu Lab Fil
 4.  **Passe die Variablen am Anfang des Skripts an:** Du musst die Entitäts-IDs deiner AMS-Sensoren, deines Gewicht-Sensors und die technische Geräte-ID deiner Spoolman-Integration an deine Umgebung anpassen. Kommentare im Code erklären, wie du die richtigen Werte findest.
 5.  Speichere das Skript mit einem `alias` wie `Spoolman Finales Update`.
 
+```yaml
+
 #
 # Home Assistant Skript: Spoolman Multi-Color Update für Bambu Lab Drucker
 #
@@ -277,7 +279,7 @@ sequence:
                     last_used: "{{ now().isoformat() }}"
 mode: parallel
 max: 10
-
+```
 
 #### Schritt 3: Automatisierung erstellen
 
