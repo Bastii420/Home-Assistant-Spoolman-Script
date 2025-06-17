@@ -46,7 +46,7 @@ This script identifies spools via the RFID UID that is read from Bambu Lab filam
 # Home Assistant Script: Spoolman Multi-Color Update for Bambu Lab Printers
 #
 # Author: Bastii420 (developed with the help of Google's Gemini)
-# Version: 2.0 - Corrected Addition Logic
+# Version: 1.0
 # Date: June 18, 2025
 #
 # Description: 
@@ -198,7 +198,7 @@ Dieses Skript identifiziert die Spulen über die RFID-UID, die von Bambu Lab Fil
 # Home Assistant Skript: Spoolman Multi-Color Update für Bambu Lab Drucker
 #
 # Autor: Bastii420 (erarbeitet mit Hilfe von Google's Gemini)
-# Version: 2.0 - Korrigierte Additionslogik
+# Version: 1.0
 # Datum: 18. Juni 2025
 #
 # Beschreibung: 
