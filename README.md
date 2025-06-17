@@ -58,7 +58,7 @@ This script identifies spools via the RFID UID that is read from Bambu Lab filam
 # IMPORTANT: The RFID/UID of the Bambu filament spools must be entered into the
 # "Lot Number" (lot_nr) field in Spoolman for the matching to work.
 #
-alias: Spoolman Final Update
+alias: update spoolman from bambu
 description: Adds the new consumption to the existing used weight after a print (Multi-Color capable).
 sequence:
   - variables:
@@ -151,7 +151,7 @@ This script is called by a simple automation when a print job is completed.
       - delay:
           seconds: 5
       # Call the script. The name must match the 'alias' of your script.
-      - service: script.spoolman_final_update
+      - service: script.update_spoolman_from_bambu
     mode: single
     ```
 4.  **Adapt the `entity_id` in the `trigger` and the `service` call to match your entities,** then save the automation.
@@ -210,7 +210,7 @@ Dieses Skript identifiziert die Spulen über die RFID-UID, die von Bambu Lab Fil
 # WICHTIG: Die RFID/UID der Bambu-Filamentspulen muss im Feld "Chargennummer" (lot_nr)
 # in Spoolman eingetragen sein, damit die Zuordnung funktioniert.
 #
-alias: Spoolman Finales Update
+alias: update spoolman from bambu
 description: Addiert den neuen Verbrauch zum bestehenden Verbrauch hinzu (Multi-Color fähig).
 sequence:
   - variables:
@@ -302,7 +302,7 @@ Dieses Skript wird durch eine einfache Automatisierung aufgerufen, wenn ein Druc
       - delay:
           seconds: 5
       # Rufe das Skript auf. Der Name muss mit dem 'alias' deines Skripts übereinstimmen.
-      - service: script.spoolman_finales_update
+      - service: script.update_spoolman_from_bambu
     mode: single
     ```
 4.  **Passe die `entity_id` im `trigger` und den `service`-Aufruf an deine Gegebenheiten an** und speichere die Automatisierung.
