@@ -21,7 +21,7 @@ Ensure the following components are installed and functional in your Home Assist
 1.  **Home Assistant:** An up-to-date version.
 2.  **Bambu Lab Printer with AMS:** The printer must be connected to your network.
 3.  **Spoolman Add-on:** The Spoolman add-on must be installed via the Add-on Store and running.
-4.  **Bambu Lab Integration:** The [Bambu Lab Integration](https://github.com/greghesp/bambu-lab-hass-integration) must be installed via HACS and connected to your printer.
+4.  **Bambu Lab Integration:** The [Bambu Lab Integration](https://github.com/greghesp/ha-bambulab) must be installed via HACS and connected to your printer.
 5.  **Spoolman Integration:** The [Spoolman Integration](https://github.com/Disane87/spoolman-homeassistant) must be installed via HACS and connected to your Spoolman server.
 
 ### Setup
@@ -169,7 +169,7 @@ Stelle sicher, dass die folgenden Komponenten in deinem Home Assistant installie
 1.  **Home Assistant:** Eine aktuelle Version.
 2.  **Bambu Lab Drucker mit AMS:** Der Drucker muss mit dem Netzwerk verbunden sein.
 3.  **Spoolman Add-on:** Das Spoolman-Add-on muss über den Add-on Store installiert und gestartet sein.
-4.  **Bambu Lab Integration:** Die [Bambu Lab Integration](https://github.com/greghesp/bambu-lab-hass-integration) muss über HACS installiert und mit deinem Drucker verbunden sein.
+4.  **Bambu Lab Integration:** Die [Bambu Lab Integration](https://github.com/greghesp/ha-bambulab) muss über HACS installiert und mit deinem Drucker verbunden sein.
 5.  **Spoolman Integration:** Die [Spoolman Integration](https://github.com/Disane87/spoolman-homeassistant) muss über HACS installiert und mit deinem Spoolman-Server verbunden sein.
 
 ### Einrichtung
