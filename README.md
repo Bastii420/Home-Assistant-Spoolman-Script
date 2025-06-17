@@ -45,21 +45,21 @@ This script identifies spools via the RFID UID that is read from Bambu Lab filam
 #
 # Home Assistant Script: Spoolman Multi-Color Update for Bambu Lab Printers
 #
-# Author: [Your Name/GitHub Username]
-# Version: 1.0 (developed with the help of Google's Gemini)
+# Author: Bastii420 (developed with the help of Google's Gemini)
+# Version: 2.0 - Corrected Addition Logic
 # Date: June 18, 2025
 #
 # Description: 
 # This script is called after a 3D print is finished. It iterates through all 
 # four slots of the Bambu Lab AMS, reads the filament consumption per slot, and 
-# updates the corresponding entry in the Spoolman database.
+# adds it to the existing used weight in the Spoolman database.
 # It is suitable for both single- and multi-color prints.
 #
 # IMPORTANT: The RFID/UID of the Bambu filament spools must be entered into the
 # "Lot Number" (lot_nr) field in Spoolman for the matching to work.
 #
 alias: Spoolman Final Update
-description: Updates all used spools in Spoolman after a print (Multi-Color capable).
+description: Adds the new consumption to the existing used weight after a print (Multi-Color capable).
 sequence:
   - variables:
       # =================================================================================
@@ -68,13 +68,13 @@ sequence:
       # Enter the exact entity IDs of your four AMS slot sensors here.
       # You can find them in Home Assistant's Developer Tools > States.
       ams_trays: &trays
-        - sensor.YOUR_PRINTER_ams_1_slot_1
-        - sensor.YOUR_PRINTER_ams_1_slot_2
-        - sensor.YOUR_PRINTER_ams_1_slot_3
-        - sensor.YOUR_PRINTER_ams_1_slot_4
+        - sensor.p1s_01p00a380900656_ams_1_slot_1
+        - sensor.p1s_01p00a380900656_ams_1_slot_2
+        - sensor.p1s_01p00a380900656_ams_1_slot_3
+        - sensor.p1s_01p00a380900656_ams_1_slot_4
         
       # Enter the entity ID of your weight sensor here.
-      weight_sensor: 'sensor.YOUR_PRINTER_gewicht_des_drucks'
+      weight_sensor: 'sensor.p1s_01p00a380900656_gewicht_des_drucks'
 
       # =================================================================================
       # --- CUSTOMIZE (2/3): YOUR SPOOLMAN DEVICE ID ---
@@ -83,7 +83,7 @@ sequence:
       # Find it using this code in the Developer Tools > Template editor:
       # {{ device_id('sensor.spoolman_spool_1') }} 
       # (This assumes you have at least one spool created in Spoolman).
-      spoolman_device_id: 'YOUR_SPOOLMAN_DEVICE_ID'
+      spoolman_device_id: 'b8990689ac4c22272096195e04f06214'
 
   # This loop iterates through the list of the four AMS sensors defined above.
   - repeat:
@@ -93,35 +93,38 @@ sequence:
             current_tray_sensor: "{{ repeat.item }}"
             slot_number: "{{ repeat.item.split('_')[-1] }}"
             weight_attribute_name: "AMS 1 Tray {{ slot_number }}"
-            filament_used: "{{ state_attr(weight_sensor, weight_attribute_name) | float(0) }}"
+            filament_used_this_print: "{{ state_attr(weight_sensor, weight_attribute_name) | float(0) }}"
             tag_uid: "{{ state_attr(current_tray_sensor, 'tag_uid') }}"
-            # Find the matching spool in Spoolman by comparing the printer's RFID with the spool's Lot Number.
-            matching_spool_id: >-
-              {% set ns = namespace(id=none) %} 
+            # Find the matching Spoolman entity (not just the ID)
+            matching_entity: >-
+              {% set ns = namespace(entity=none) %}
               {% for spool_entity in device_entities(spoolman_device_id) %}
-                {# This is where the comparison happens #}
                 {% if tag_uid | string == state_attr(spool_entity, 'lot_nr') | string %}
-                  {% set ns.id = state_attr(spool_entity, 'id') %}
+                  {% set ns.entity = spool_entity %}
                   {% break %}
                 {% endif %}
-              {% endfor %} 
-              {{ ns.id }}
+              {% endfor %}
+              {{ ns.entity }}
 
         # Choose an action based on conditions.
         - choose:
-            # This action is only executed if...
+            # This action is only executed if filament was used AND we found a matching spool.
             - conditions:
-                # ...filament was consumed (more than 0g) AND...
-                - "{{ filament_used > 0 }}"
-                # ...we found a matching spool ID in Spoolman.
-                - "{{ matching_spool_id != none }}"
-              # If both conditions are true, execute this sequence:
+                - "{{ filament_used_this_print > 0 }}"
+                - "{{ matching_entity != none }}"
               sequence:
-                # Call the Spoolman service to update the weight and last used time.
+                # CORRECT ADDITION LOGIC:
+                - variables:
+                    # Read the already used weight from the found Spoolman sensor.
+                    current_used_weight: "{{ state_attr(matching_entity, 'used_weight') | float(0) }}"
+                    # Add the new consumption from the current print.
+                    new_total_used: "{{ current_used_weight + filament_used_this_print }}"
+                    spool_id_for_service: "{{ state_attr(matching_entity, 'id') }}"
+                # Call the service with the new, correct sum.
                 - service: spoolman.patch_spool
                   data:
-                    id: "{{ matching_spool_id }}"
-                    used_weight: "{{ filament_used }}"
+                    id: "{{ spool_id_for_service }}"
+                    used_weight: "{{ new_total_used }}" # The sum is passed here
                     last_used: "{{ now().isoformat() }}"
 # The 'parallel' mode allows, in theory, for all spool updates to be sent concurrently.
 mode: parallel
