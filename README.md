@@ -192,6 +192,93 @@ Dieses Skript identifiziert die Spulen über die RFID-UID, die von Bambu Lab Fil
 4.  **Passe die Variablen am Anfang des Skripts an:** Du musst die Entitäts-IDs deiner AMS-Sensoren, deines Gewicht-Sensors und die technische Geräte-ID deiner Spoolman-Integration an deine Umgebung anpassen. Kommentare im Code erklären, wie du die richtigen Werte findest.
 5.  Speichere das Skript mit einem `alias` wie `Spoolman Finales Update`.
 
+#
+# Home Assistant Skript: Spoolman Multi-Color Update für Bambu Lab Drucker
+#
+# Autor: Bastii420 (erarbeitet mit Hilfe von Google's Gemini)
+# Version: 2.0 - Korrigierte Additionslogik
+# Datum: 18. Juni 2025
+#
+# Beschreibung: 
+# Dieses Skript wird nach einem fertigen 3D-Druck aufgerufen. Es durchläuft alle 
+# vier Slots des Bambu Lab AMS, liest den Filamentverbrauch pro Slot aus und 
+# addiert diesen zum bestehenden Verbrauch in der Spoolman-Datenbank.
+# Es ist für Ein- und Mehrfarbdrucke geeignet.
+#
+# WICHTIG: Die RFID/UID der Bambu-Filamentspulen muss im Feld "Chargennummer" (lot_nr)
+# in Spoolman eingetragen sein, damit die Zuordnung funktioniert.
+#
+alias: Spoolman Finales Update
+description: Addiert den neuen Verbrauch zum bestehenden Verbrauch hinzu (Multi-Color fähig).
+sequence:
+  - variables:
+      # =================================================================================
+      # --- ANPASSEN (1/3): DEINE SENSOR-NAMEN ---
+      # =================================================================================
+      # Trage hier die exakten Entitäts-IDs deiner vier AMS-Slot-Sensoren ein.
+      # Du findest sie in den Home Assistant Entwicklerwerkzeugen > Zustände.
+      ams_trays: &trays
+        - sensor.p1s_01p00a380900656_ams_1_slot_1
+        - sensor.p1s_01p00a380900656_ams_1_slot_2
+        - sensor.p1s_01p00a380900656_ams_1_slot_3
+        - sensor.p1s_01p00a380900656_ams_1_slot_4
+        
+      # Trage hier die Entitäts-ID deines Sensors ein, der den Gewichtsverbrauch anzeigt.
+      weight_sensor: 'sensor.p1s_01p00a380900656_gewicht_des_drucks'
+
+      # =================================================================================
+      # --- ANPASSEN (2/3): DEINE SPOOLMAN GERÄTE-ID ---
+      # =================================================================================
+      # Dies ist die technische Geräte-ID deiner Spoolman-Integration.
+      # Finde sie mit diesem Code im Entwicklerwerkzeug > Template:
+      # {{ device_id('sensor.spoolman_spool_1') }} 
+      # (Vorausgesetzt, du hast schon eine Spule in Spoolman angelegt)
+      spoolman_device_id: 'b8990689ac4c22272096195e04f06214'
+
+  # Diese Schleife geht die Liste der vier AMS-Sensoren von oben durch.
+  - repeat:
+      for_each: *trays
+      sequence:
+        - variables:
+            current_tray_sensor: "{{ repeat.item }}"
+            slot_number: "{{ repeat.item.split('_')[-1] }}"
+            weight_attribute_name: "AMS 1 Tray {{ slot_number }}"
+            filament_used_this_print: "{{ state_attr(weight_sensor, weight_attribute_name) | float(0) }}"
+            tag_uid: "{{ state_attr(current_tray_sensor, 'tag_uid') }}"
+            matching_entity: >-
+              {% set ns = namespace(entity=none) %}
+              {% for spool_entity in device_entities(spoolman_device_id) %}
+                {% if tag_uid | string == state_attr(spool_entity, 'lot_nr') | string %}
+                  {% set ns.entity = spool_entity %}
+                  {% break %}
+                {% endif %}
+              {% endfor %}
+              {{ ns.entity }}
+
+        # Wähle eine Aktion basierend auf Bedingungen.
+        - choose:
+            # Diese Aktion wird nur ausgeführt, wenn Filament verbraucht wurde UND wir eine passende Spule gefunden haben.
+            - conditions:
+                - "{{ filament_used_this_print > 0 }}"
+                - "{{ matching_entity != none }}"
+              sequence:
+                # KORREKTE LOGIK ZUM ADDIEREN:
+                - variables:
+                    # Lese den bereits verbrauchten Wert aus dem gefundenen Spoolman-Sensor.
+                    current_used_weight: "{{ state_attr(matching_entity, 'used_weight') | float(0) }}"
+                    # Addiere den neuen Verbrauch vom aktuellen Druck hinzu.
+                    new_total_used: "{{ current_used_weight + filament_used_this_print }}"
+                    spool_id_for_service: "{{ state_attr(matching_entity, 'id') }}"
+                # Rufe den Dienst mit der neuen, korrekten Summe auf.
+                - service: spoolman.patch_spool
+                  data:
+                    id: "{{ spool_id_for_service }}"
+                    used_weight: "{{ new_total_used }}" # Hier wird die Summe übergeben
+                    last_used: "{{ now().isoformat() }}"
+mode: parallel
+max: 10
+
+
 #### Schritt 3: Automatisierung erstellen
 
 Dieses Skript wird durch eine einfache Automatisierung aufgerufen, wenn ein Druck beendet ist.
