@@ -139,7 +139,7 @@ This script is called by a simple automation when a print job is completed.
 2.  Create a new, empty automation in YAML mode.
 3.  Add the following code:
 
-    ```yaml
+```yaml
     alias: Print finished -> Start final Spoolman update
 description: When a print is finished, the final Spoolman script is called to update the consumption.
 trigger:
@@ -159,7 +159,8 @@ action:
   # Step 2: Call the script.
   - service: script.spoolman_finales_update
 mode: single
-    ```
+```
+
 4.  **Adapt the `entity_id` in the `trigger` and the `service` call to match your entities,** then save the automation.
 
 Done! The system is now fully functional.
@@ -295,7 +296,7 @@ Dieses Skript wird durch eine einfache Automatisierung aufgerufen, wenn ein Druc
 2.  Erstelle eine neue, leere Automatisierung im YAML-Modus.
 3.  Füge den folgenden Code ein:
 
-    ```yaml
+```yaml
     alias: Druck fertig -> Starte finales Spoolman Update
 description: Wenn ein Druck fertig ist, wird das finale Spoolman-Skript aufgerufen, um den Verbrauch zu aktualisieren.
 trigger:
@@ -315,7 +316,7 @@ action:
   # Schritt 2: Das Skript aufrufen.
   - service: script.spoolman_finales_update
 mode: single
-    ```
+```
 4.  **Passe die `entity_id` im `trigger` und den `service`-Aufruf an deine Gegebenheiten an** und speichere die Automatisierung.
 
 Fertig! Das System ist nun voll funktionsfähig.
