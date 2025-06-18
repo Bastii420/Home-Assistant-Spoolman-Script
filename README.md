@@ -140,19 +140,25 @@ This script is called by a simple automation when a print job is completed.
 3.  Add the following code:
 
     ```yaml
-    alias: "Print Finished -> Start Final Spoolman Update"
-    trigger:
-      # This is a generic trigger. Users only need to adapt the sensor name.
-      - platform: state
-        entity_id: sensor.YOUR_PRINTER_print_status
-        to: "finished"
-    action:
-      # Add a short delay for stability, ensuring all sensor data is available.
-      - delay:
-          seconds: 5
-      # Call the script. The name must match the 'alias' of your script.
-      - service: script.update_spoolman_from_bambu
-    mode: single
+    alias: Print finished -> Start final Spoolman update
+description: When a print is finished, the final Spoolman script is called to update the consumption.
+trigger:
+  # This trigger reacts to the "Print finished" event directly from your printer.
+  # We are using the "device" trigger you had yourself, as it is very reliable.
+  - platform: device
+    device_id: afbc3be07f08653fe1ce9632c30cd2aa # This is the unique ID of your printer device in HA
+    domain: bambu_lab
+    type: event_print_finished
+action:
+  # Step 1: Wait for 5 seconds.
+  # This gives Home Assistant and all integrations (especially Spoolman) enough time
+  # to synchronize their data after the print has finished. This solves our timing issue.
+  - delay:
+      seconds: 5
+      
+  # Step 2: Call the script.
+  - service: script.spoolman_finales_update
+mode: single
     ```
 4.  **Adapt the `entity_id` in the `trigger` and the `service` call to match your entities,** then save the automation.
 
@@ -290,20 +296,25 @@ Dieses Skript wird durch eine einfache Automatisierung aufgerufen, wenn ein Druc
 3.  Füge den folgenden Code ein:
 
     ```yaml
-    alias: "Druck fertig -> Starte finales Spoolman Update"
-    trigger:
-      # Dieser Trigger ist allgemeingültig. 
-      # Nutzer müssen nur den Namen ihres Drucker-Status-Sensors anpassen.
-      - platform: state
-        entity_id: sensor.DEIN_DRUCKER_print_status
-        to: "finished"
-    action:
-      # Füge eine kleine Verzögerung hinzu, um sicherzustellen, dass alle Daten verfügbar sind.
-      - delay:
-          seconds: 5
-      # Rufe das Skript auf. Der Name muss mit dem 'alias' deines Skripts übereinstimmen.
-      - service: script.update_spoolman_from_bambu
-    mode: single
+    alias: Druck fertig -> Starte finales Spoolman Update
+description: Wenn ein Druck fertig ist, wird das finale Spoolman-Skript aufgerufen, um den Verbrauch zu aktualisieren.
+trigger:
+  # Dieser Trigger reagiert auf das "Druck beendet"-Ereignis direkt von deinem Drucker.
+  # Wir verwenden hier den "device"-Trigger, den du selbst schon hattest, da er sehr zuverlässig ist.
+  - platform: device
+    device_id: afbc3be07f08653fe1ce9632c30cd2aa # Dies ist die einzigartige ID deines Drucker-Geräts in HA
+    domain: bambu_lab
+    type: event_print_finished
+action:
+  # Schritt 1: 5 Sekunden warten.
+  # Dies gibt Home Assistant und allen Integrationen (besonders Spoolman) genug Zeit,
+  # um nach dem Druck alle ihre Daten zu synchronisieren. Dies löst unser Timing-Problem.
+  - delay:
+      seconds: 5
+      
+  # Schritt 2: Das Skript aufrufen.
+  - service: script.spoolman_finales_update
+mode: single
     ```
 4.  **Passe die `entity_id` im `trigger` und den `service`-Aufruf an deine Gegebenheiten an** und speichere die Automatisierung.
 
